@@ -1,0 +1,300 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+# **Analysis Of Movies In R From Year 1960-2020**
+### **By Simran Kaur**  
+  
+****
+* **[Introduction](#intro)**   
+* **[Data Cleaning](#data)**   
+* **[Statistical Tests](#stats)**      
+* **[Visualizing the Data](#visual)**   
+  +  **[Univariate analysis](#uni)**   
+  +  **[Bivariate Analysis](#bi)**
+  +  **[Smooth Line](#smooth)**   
+  +  **[BoxPlot](#box)**   
+* **[Conclusions from the Graphs](#conclusion)**   
+  +  **[Which release years had the most number of movies shot?](#q1)**
+  +  **[ Which are the most famous locations to shoot a movie?](#q2)** 
+  +  **[Which directors shot the most number of movies?](#q3)** 
+  +  **[Who are the top ten directors with best movie ?](#q4)** 
+  +  **[What are the Most Liked Genre among Movies?](#q5)** 
+   
+## **Introduction**  {#intro}
+   
+   ****
+
+This dataset consist of list of curated set of movies for our analysis from the year 1940s to 2020. Let us analyse this data to answer questions like which director released most of the movies, which is the highest rated movie, which genre is liked by the audience , which movie has highest IMDb score etc.
+
+**Packages used**
+```{r,message= FALSE}
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+library(ggplot2)
+```
+
+**Loading the Data and Summary **
+````{r}
+mov<-read.csv("C:/Users/Simran/Desktop/movie_analysis/MoviesOnStreamingPlatforms.csv")
+summary(mov)
+glimpse(mov)
+````
+
+# **Data Cleaning**   {#data}
+
+****
+From the dataset,it is easy to infer that some cleaning need to be done before we can decipher information.Lets do it first.
+
+*Changing Rotten.Tomatoes to Rotten_Tomatoes*
+```{r}
+mov<-mov%>% 
+  setNames(names(.)%>% 
+             str_replace_all("\\.","_"))
+```
+
+*Removing unnecessary columns*
+
+```{r}
+mov<-mov[-c(7:11)]  
+summary(mov)
+```
+*Removing NA values*
+
+```{r}
+mov<-mov %>%
+  drop_na()
+```
+
+
+# **Statistical Tests** {#stats}
+****   
+
+```{r}
+summary(mov)  
+table(mov$IMDb)
+table(mov$Year)
+table(mov$IMDb,mov$Year)
+```
+
+```{r}
+summary(table(mov$IMDb,mov$Year))
+```
+**p-value<0.05 : fails to provide any evidence**
+
+## Quantile for number of movies with 5% probability
+```{r}
+quantile(mov$IMDb,0.05)
+```
+## Quantile for number of movies with an interval of 25% in the probabilities
+```{r}
+quantile(mov$IMDb)
+```
+
+## Using t.test for checking if mean can be 7
+```{r}
+t.test(mov$IMDb, mu=7.0)
+```
+
+**As p-value<0.05, it's unlikely that true mean is 7**  
+   
+**Null hypothesis is rejected**
+
+## Using t.test checking if mean is 7 with a confidence level of 99%
+```{r}
+t.test(mov$IMDb,conf.level = 0.99, mu=7.0)
+```
+**p-value is very small so it is very unlikely that mean is 7**   
+
+**Null hypothesis is rejected**
+
+## Calculating confidence interval for median of IMDb using Wilcox test
+```{r}
+wilcox.test(mov$IMDb,conf.int = TRUE)
+```
+## Checking if correlation between IMDb and Runtime is significant.
+```{r}
+cor.test(mov$IMDb,mov$Runtime)
+```
+**p-value<0.05 so a significant correlation exist**
+
+# **Visualizing the Data**   {#visual}
+*****
+
+## Univariate analysis  {#uni}
+
+```{r}
+hist(mov$Year, main="Distribution by Year", xlab = "Year", col = "blue")  
+ggplot(data=mov,aes(x=Year)) + geom_freqpoly(bins=30)
+```
+   
+**This shows most of the movies are released in 2015 to 2020.**    
+   
+   
+## bivariate analysis   {#bi}
+
+*scatter plot for bivariate analysis how does one variable change wrt another*
+```{r}
+ggplot(data=mov,aes(x=Year, y=IMDb,col=IMDb)) + geom_point()
+```   
+   
+**This shows high IMDb scored movies are released in last 2019-2020**   
+   
+   
+## Smooth-Line    {#smooth}
+*smooth-line for checking how does one continuous variable change wrt another continuous variable*
+```{r}
+  g1<-ggplot(data=mov,aes(x=Year,y=Runtime)) +geom_point()+ geom_smooth(method="lm") #lm is linear-model
+  g1+ theme(panel.background = element_rect(fill="pink"),plot.title=element_text(hjust=0.5,face="bold",color="cadetblue")) + labs(title = "Year vs Runtime")
+```
+   
+**This shows from previous year, now the released movies duration has decreased to 100-120 mins.**
+    
+     
+## Boxplot   {#box}
+
+```{r}
+ggplot(data=mov,aes(x=factor(IMDb),y=Year, fill=factor(IMDb))) + geom_boxplot()
+```
+
+**This shows that the most liked movies are released in the 1980-2000 time period**
+   
+   
+# **Conclusions from the Graphs**  {#conclusion}
+
+*****
+## *Question 1: Which release years had the most number of movies shot?*  {#q1}
+```{r}
+popular_by_year <- mov %>%
+  group_by(Year) %>%
+  summarize(Number_of_movies = n_distinct(Title)) %>%
+  filter(Number_of_movies > 5) %>%
+  arrange(desc(Number_of_movies))
+popular_by_year
+```
+
+## This can be easily understood if it is visualized.
+```{r}
+popular_by_year %>%
+  ggplot(aes(x = Year, y = Number_of_movies)) +
+  
+  geom_col(fill = "#18BC9C") +
+  geom_text(aes(label= Number_of_movies), vjust = 0 ) +
+  labs(
+    title = "Number of movies shot by release year",
+    x = "Release Year",
+    y = "Number of Movies"
+  )
+```  
+
+### **In 2018 most of the movies were shot.**  
+***** 
+  
+  
+## Question 2: Which are the most famous locations to shoot a movie?   {#q2}
+  ```{r}
+  popular_locations <- mov %>%
+  group_by(Country) %>%
+  summarize(Number_of_movies = n_distinct(Title)) %>%
+  filter(Number_of_movies > 5) %>%
+  filter(Number_of_movies < 54) %>%  
+  arrange(desc(Number_of_movies))
+  popular_locations
+```
+## Visualizing this…
+  ```{r}
+popular_locations %>%
+  ggplot(aes(x = reorder(Country, -Number_of_movies), y = Number_of_movies )) + 
+  
+  geom_col(fill = "#C40003" ) +
+  geom_text(aes(label= Number_of_movies), hjust = 0 ) +
+  labs (
+    title = "Country vs Number of movies",
+    y = "Number of Movies"
+  ) +
+  coord_flip()
+```  
+
+
+
+
+### **Most Movies were shot in United Kingdom.**  
+******    
+   
+   
+## Question 3: Which directors shot the most number of movies?   {#q3}
+  ```{r}
+  directors <- mov %>%
+  group_by(Directors) %>%
+  summarize(Number_of_movies = n_distinct(Title)) %>%
+  filter(Number_of_movies > 3) %>%
+  arrange(desc(Number_of_movies))
+  directors
+  ```
+
+## Visualizing this …
+```{r}
+directors %>%
+  ggplot(aes(x = Directors, y = Number_of_movies )) +
+  
+  geom_col(fill = "#0055AA" ) +
+    geom_text(aes(label= Number_of_movies), vjust = 0 ) +
+  labs (
+    title = "Number of Movies vs Directors",
+    y = "Number of Movies"
+  )
+```  
+
+### **Clearly Steven Spielberg released most number of Movies.**
+
+******   
+   
+   
+## Ques4 Who are the top ten directors with best movie ?   {#q4}
+```{r}
+best_director<-mov%>%group_by(Directors)%>%
+  summarise(mean= mean(IMDb))%>%
+  top_n(10)%>%
+  arrange(desc(mean))
+best_director
+```
+
+##plot the top 10 directors with their average score for better visualization
+```{r}
+ggplot(best_director, aes(x = Directors, y = mean, alpha = mean))+
+  geom_bar(stat = "identity",fill = "slateblue") + labs(x = "Best 10 Directors", y = "Average Imdb Score") + 
+  ggtitle("Top 10 directors with average score")+coord_flip(ylim=c(8,8.75))
+```   
+   
+   
+### **From the previous graph we can see most movies were directed by Steven Spielberg but from this graph we can conclude that the best rated movies were directed by Christopher Nolan**  
+
+*******   
+    
+    
+## Ques5 What are the Most Liked Genre among Movies?   {#q5}
+```{r}
+best_category<-mov%>%
+  group_by(Genres)%>%
+  summarise(mean= mean(IMDb))%>%
+  top_n(5)%>%
+  arrange(desc(mean))
+best_category
+```
+
+## plot
+```{r}
+ggplot(best_category, aes(x = Genres, y = mean, alpha = mean))+
+  geom_bar(stat = "identity",fill = "slateblue") + labs(x = "Top movie genre", y = "Average Imdb Score") + 
+  ggtitle("Top movie genre with average score")+coord_flip(ylim=c(8.3,8.6))
+```    
+    
+    
+### **So as we can see Western movies are mostly liked by the audience.**
+
+    
+******
+     
+    
