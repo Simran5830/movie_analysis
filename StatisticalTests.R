@@ -47,4 +47,4 @@ wilcox.test(mov$IMDb,conf.int = TRUE)
 
 cor.test(mov$IMDb,mov$Runtime)
 
-p-value<0.05 so a significant correlation exist
+#p-value<0.05 so a significant correlation exist
