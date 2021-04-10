@@ -7,40 +7,44 @@ table(mov$IMDb, mov$Netflix)
 
 summary(table(mov$Rotten.Tomatoes, mov$Prime.Video))
 
-# Quantile for 5% probablity
-quantile(mov$Runtime, .05)
+summary(mov)  
+table(mov$IMDb)
+table(mov$Year)
+table(mov$IMDb,mov$Year)
 
-# Quantile with 5% and 95% probablity
-quantile(mov$Runtime, c(.05, .95))
+summary(table(mov$IMDb,mov$Year))
 
-# Quantile interval of 25% in the probabilties
-quantile(mov$Runtime)
+#p-value<0.05 : fails to provide any evidence
 
-#conersion
-scale(mov$ReleaseYear)
+# Quantile for number of movies with 5% probability
 
-# Using the t.test
-t.test(mov$IMDb, mu = 7)
-# p-value <  0.05 so it's unlikely that mean is 40
-# null hypothesis is rejected
+quantile(mov$IMDb,0.05)
 
-# Using the t.test and asking if the mean of points can be 40 with a confidence level of 99%
-t.test(mov$IMDb, conf.level = 0.99, mu = 40)
-# p-value <  0.05 so it's unlikely that mean is 40
-# null hypothesis is rejected
+# Quantile for number of movies with an interval of 25% in the probabilities
+quantile(mov$IMDb)
 
-# Calcuting the confidence interval for the median of points using the Wilcox Test# Calcuting the confidence interval for the median of points using the Wilcox Test
-wilcox.test(mov$IMDb, conf.int = TRUE)
+# Using t.test for checking if mean can be 7
 
-# Using the Shapiro Test for normality
-shapiro.test(mov$IMDb)
+t.test(mov$IMDb, mu=7.0)
 
-# p-value > 0.05 so it's normally distributed
-# Checking if the correlation between points and the number of wins is significant
-cor.test(mov$IMDb, mov$Runtime)
+#As p-value<0.05, it's unlikely that true mean is 7
+   
+#Null hypothesis is rejected
 
-# p-value < 0.05 so a significant correlation exists
-# Checking if the correlation between points and the number of yellow cards is significant
-cor.test(mov$IMDb, mov$ReleaseYear)
+# Using t.test checking if mean is 7 with a confidence level of 99%
 
-# p-value > 0.05 so a significant correlation does not exist
+t.test(mov$IMDb,conf.level = 0.99, mu=7.0)
+
+#p-value is very small so it is very unlikely that mean is 7   
+
+#Null hypothesis is rejected**
+
+#Calculating confidence interval for median of IMDb using Wilcox test
+
+wilcox.test(mov$IMDb,conf.int = TRUE)
+
+# Checking if correlation between IMDb and Runtime is significant.
+
+cor.test(mov$IMDb,mov$Runtime)
+
+p-value<0.05 so a significant correlation exist
