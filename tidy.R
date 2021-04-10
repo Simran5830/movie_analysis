@@ -7,7 +7,7 @@ str(mov)
 table (complete.cases(mov))
 summary  (mov [!complete.cases(mov),])
 
-From the dataset,it is easy to infer that some cleaning need to be done before we can decipher information.Lets do it first.
+#From the dataset,it is easy to infer that some cleaning need to be done before we can decipher information.Lets do it first.
 
 #Changing Rotten.Tomatoes to Rotten_Tomatoes
 
